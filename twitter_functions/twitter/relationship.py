@@ -153,32 +153,6 @@ def follow_followers_followers(self):
 
 
 
-
-"""
-d_friends=settings.D_FRIENDSHIP,len_description=settings.LEN_DESCRIPTION,
-                      nr_statuses=settings.NR_STATUSES,days_active=settings.DAYS_LAST_ACTIVE,
-                      profile_age=settings.PROFILE_AGE, quaries=settings.QUARIES, profile_image=settings.PROFILE_IMAGE,
-                      has_status = settings.HAS_STATUS
-        self.d_friends = d_friends
-        self.len_description = len_description
-        self.profile_image = profile_image
-        self.nr_statuses = nr_statuses
-        self.has_status = has_status
-        self.days_active = days_active
-        self.profile_age = profile_age
-        self.quaries = quaries
-        
-        self.d_friends = kwargs.get("d_friends",self.d_friends)
-        self.len_description = kwargs.get("len_description",self.len_description)
-        self.profile_image = kwargs.get("profile_image",self.profile_image)
-        self.nr_statuses = kwargs.get("nr_statuses",self.nr_statuses)
-        self.has_status = kwargs.get("has_status",self.has_status)
-        self.days_active = kwargs.get("days_active",self.days_active)
-        self.profile_age = kwargs.get("profile_age",self.profile_age)
-        self.quaries = kwargs.get("quaries",self.quaries)
-"""
-
-
 class FriendshipChecker(object):
     """
         Decides wheter a user should be a friend or not
