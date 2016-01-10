@@ -30,9 +30,8 @@ def destroy_friendship(user,api):
     
 def gather_friendships(model,screen_name, max_pages=0):
     """
-        NOTE:
-                 Hackish way of handeling rate limit... not fully tested
-                 5000 retrieced on each page, 1 minute for each page
+        I max_page <= 0 and user has many friends/followers, 
+        then this will take a very long time.
     """
     friendships = []
     count = 0

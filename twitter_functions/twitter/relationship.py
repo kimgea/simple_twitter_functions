@@ -21,7 +21,9 @@ import twitter_access
 
 
 class RelationshipFunctions(object):
-    
+    """
+        Class holding different follow and unfollow functions
+    """
     def __init__(self, screen_name=settings.SCREEN_NAME, key=settings.TWITTER_USER_KEY,
                  secret=settings.TWITTER_USER_SECRET):
         self.api = twitter_access.get_api(key, secret)
@@ -30,40 +32,17 @@ class RelationshipFunctions(object):
         self.followers = []
         self.friends = []    
     
-    
-    def _gather_friendships(self,model, max_pages=0):
-        """
-            NOTE:
-                     Hackish way of handeling rate limit... not fully tested
-                     5000 retrieced on each page, 1 minute for each page
-        """
-        friendships = []
-        count = 0
-        for page in tweepy.Cursor(model, screen_name=self.screen_name).pages():
-            count += 1
-            friendships.extend(page)
-            time.sleep(60)
-            if count >= max_pages and max_pages > 0:
-                break
-        return friendships
             
-    def _gather_followers(self, get_id=True, max_pages=0):
-        if get_id:
-            self.followers = twitter_access.gather_friendships(self.api.followers_ids, self.screen_name, max_pages)
-        else:
-            self.followers = twitter_access.gather_friendships(self.api.followers, self.screen_name, max_pages)
+    def _gather_followers(self, max_pages=0):
+        self.followers = twitter_access.gather_friendships(self.api.followers_ids, self.screen_name, max_pages)
         
-    def _gather_friends(self, get_id=True, max_pages=0):
-        if get_id:
-            self.friends = twitter_access.gather_friendships(self.api.friends_ids, self.screen_name, max_pages)
-        else:
-            self.friends = twitter_access.gather_friendships(self.api.followers, self.screen_name, max_pages)    
+    def _gather_friends(self, max_pages=0):
+        self.friends = twitter_access.gather_friendships(self.api.friends_ids, self.screen_name, max_pages)    
         
             
-    def _gather_friends_followers(self, get_id=True, max_pages=0):
-        
-        self._gather_followers(get_id,max_pages)
-        self._gather_friends(get_id,max_pages)
+    def _gather_friends_followers(self, max_pages=0):
+        self._gather_followers(max_pages)
+        self._gather_friends(max_pages)
         
         
     def followback(self, max_pages=0):
@@ -73,7 +52,7 @@ class RelationshipFunctions(object):
         logging.info(u"check for potential followback")
         friendship_checker = FriendshipChecker(settings.METHOD_FOLLOWBACK)
         
-        self._gather_friends_followers(True,max_pages)
+        self._gather_friends_followers(max_pages)
         
         user_ids = set(self.followers).difference(set(self.friends))
         logging.info(u"Possible followback nr: "+unicode(len(user_ids)))
@@ -97,7 +76,7 @@ class RelationshipFunctions(object):
         """
         logging.info(u"check for users not following back")
         
-        self._gather_friends_followers(True,max_pages)        
+        self._gather_friends_followers(max_pages)        
         user_ids = set(self.friends).difference(set(self.followers))
         
         if not user_ids:
@@ -120,7 +99,7 @@ class RelationshipFunctions(object):
         """
         logging.info(u"check for users to unfollow")
         friendship_checker = FriendshipChecker(settings.METHOD_UNFOLLOW)
-        self._gather_friends(True,max_pages)
+        self._gather_friends(max_pages)
         for i in self.friends:
             user = twitter_access.get_user(i, self.api)
             logging.info(u"CHECK: "+unicode(user.screen_name) +u" ____________________________")
@@ -201,7 +180,9 @@ d_friends=settings.D_FRIENDSHIP,len_description=settings.LEN_DESCRIPTION,
 
 
 class FriendshipChecker(object):
-    
+    """
+        Decides wheter a user should be a friend or not
+    """
     def __init__(self, method_type=""):
         """
             @param method_type: "FOLLOWBACK"|"UNFOLLOW"|"" 
@@ -264,6 +245,9 @@ class FriendshipChecker(object):
     #    _checker functions (rule set) to check if user is ok
     
     def run(self,user):
+        """
+            Run this to check if user should be a friend or not
+        """
         
         checked = self._full_check(user)
         
@@ -328,7 +312,7 @@ class FriendshipChecker(object):
     
     ################################
     #
-    #    check values from user to se if they are ok 
+    #    check values from user to se if they are ok  - get facts to be used in rules
     
     def check_followers_nr(self,user,d_friends):
         #IF user follow to many compared to how many followers it has, return false

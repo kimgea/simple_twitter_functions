@@ -4,11 +4,6 @@ Created on 7. okt. 2015
 @author: kga
 '''
 
-"""
-    TODO:
-            - Make different Friendship check parameters depending on what function is runn
-            - Make hard and soft par. If hard i broken then force rule, if only soft then check if oyther soft is broken? 
-"""
 
 
 #############################
@@ -20,6 +15,7 @@ Created on 7. okt. 2015
 # Queries to twitter account is still done
 SAFE = True
 
+#DO NOT TOUCH - TODO: move to constant file?
 METHOD_FOLLOWBACK = "FOLLOWBACK"
 METHOD_UNFOLLOW = "UNFOLLOW"
 
@@ -55,7 +51,7 @@ SCREEN_NAME = ""
 
 ###################################
 #
-#    Friendship check parameters
+#    Friendship check parameters - Facts
 #
 
 # Check to se if: followers > friends * d_friends
