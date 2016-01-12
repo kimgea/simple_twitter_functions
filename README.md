@@ -12,6 +12,10 @@ Another project will adapt the code to work with db to minimize api calls, and o
 **SETUP**
 - settings
   - TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET, TWITTER_USER_KEY, TWITTER_USER_SECRET, and SCREEN_NAME in settings must be filled out
+- then just run the one you want
+  - python twitter_followback.py
+  - python twitter_unfollow.py
+  - ...
 
 
 **WARNING:**
