@@ -13,4 +13,4 @@ TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET, TWITTER_USER_KEY, TWITTER_USER_SE
 
 
 WARNING:
-	- Aggressiv mass following and unfollowing might get you suspended.
+- Aggressiv mass following and unfollowing might get you suspended.
