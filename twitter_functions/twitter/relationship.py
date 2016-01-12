@@ -39,13 +39,16 @@ class RelationshipFunctions(object):
     
             
     def _gather_followers(self):
+        logging.debug("gather followers")
         self.followers = twitter_access.gather_followers_ids(self.screen_name,self.api)
         
     def _gather_friends(self):
+        logging.debug("gather friends")
         self.friends = twitter_access.gather_friends_ids(self.screen_name,self.api)    
         
             
     def _gather_friends_followers(self):
+        logging.debug("gather friendships")
         self._gather_followers()
         self._gather_friends()
         
