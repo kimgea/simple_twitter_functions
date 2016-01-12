@@ -8,10 +8,8 @@ Created on 7. okt. 2015
 TODO: printout to log.debug
 '''
 
-import random
 import time
 import logging
-import tweepy
 from datetime import datetime
 from datetime import timedelta
 
