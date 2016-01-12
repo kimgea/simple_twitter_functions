@@ -13,6 +13,13 @@ import tweepy
 import settings
 
 def get_api(key=settings.TWITTER_USER_KEY,secret=settings.TWITTER_USER_SECRET):
+    """
+        Get twitter api
+        
+        args:
+            key (str): twitter users api key
+            secret (str): twitter users api secret
+    """
     auth = tweepy.OAuthHandler(settings.TWITTER_CONSUMER_KEY, settings.TWITTER_CONSUMER_SECRET)
     auth.set_access_token(key,secret)
     return tweepy.API(auth)
@@ -27,11 +34,26 @@ def create_friendship(user,api):
 def destroy_friendship(user,api):
     api.destroy_friendship(user)
     
+
+
+
+
+def gather_followers_ids(screen_name, api):
+    cursor_from_screen_name(api.followers_ids, screen_name,settings.MAX_PAGES_INGATHER_FRIENDSHIPS)
     
-def gather_friendships(model,screen_name, max_pages=0):
+def gather_friends_ids(screen_name, api):
+    cursor_from_screen_name(api.friends_ids, screen_name,settings.MAX_PAGES_INGATHER_FRIENDSHIPS)
+
+
+def cursor_from_screen_name(model,screen_name,max_pages=0):
     """
         I max_page <= 0 and user has many friends/followers, 
         then this will take a very long time.
+        
+        args:
+            model (api method): methiod to be used to do the calls
+            screen_name (str): screen_name of twitter user that is called
+            max_pages (int): max pages the Cursor shall call the api.
     """
     friendships = []
     count = 0

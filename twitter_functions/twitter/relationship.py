@@ -23,6 +23,11 @@ import twitter_access
 class RelationshipFunctions(object):
     """
         Class holding different follow and unfollow functions
+                
+        args:
+            screen_name (str): Twitter users screen_name
+            key (str): Twitter users api key
+            secret (str): Twitter users api secret 
     """
     def __init__(self, screen_name=settings.SCREEN_NAME, key=settings.TWITTER_USER_KEY,
                  secret=settings.TWITTER_USER_SECRET):
@@ -33,26 +38,26 @@ class RelationshipFunctions(object):
         self.friends = []    
     
             
-    def _gather_followers(self, max_pages=0):
-        self.followers = twitter_access.gather_friendships(self.api.followers_ids, self.screen_name, max_pages)
+    def _gather_followers(self):
+        self.followers = twitter_access.gather_followers_ids(self.screen_name,self.api)
         
-    def _gather_friends(self, max_pages=0):
-        self.friends = twitter_access.gather_friendships(self.api.friends_ids, self.screen_name, max_pages)    
+    def _gather_friends(self):
+        self.friends = twitter_access.gather_friends_ids(self.screen_name,self.api)    
         
             
-    def _gather_friends_followers(self, max_pages=0):
-        self._gather_followers(max_pages)
-        self._gather_friends(max_pages)
+    def _gather_friends_followers(self):
+        self._gather_followers()
+        self._gather_friends()
         
         
-    def followback(self, max_pages=0):
+    def followback(self):
         """
             Follow back user that follow me, if they are ok
         """
         logging.info(u"check for potential followback")
         friendship_checker = FriendshipChecker(settings.METHOD_FOLLOWBACK)
         
-        self._gather_friends_followers(max_pages)
+        self._gather_friends_followers()
         
         user_ids = set(self.followers).difference(set(self.friends))
         logging.info(u"Possible followback nr: "+unicode(len(user_ids)))
@@ -70,13 +75,13 @@ class RelationshipFunctions(object):
             time.sleep(60)
         
         
-    def unfollow_not_follow_backs(self, max_pages=0):
+    def unfollow_not_follow_backs(self):
         """
             Unfollow people not following back, unless user is whitelisted
         """
         logging.info(u"check for users not following back")
         
-        self._gather_friends_followers(max_pages)        
+        self._gather_friends_followers()        
         user_ids = set(self.friends).difference(set(self.followers))
         
         if not user_ids:
@@ -93,13 +98,13 @@ class RelationshipFunctions(object):
             time.sleep(60)
         
     
-    def unfollow(self, max_pages=0):
+    def unfollow(self):
         """
             Check all friends to se if some is not worth following anymore, then unfollow them
         """
         logging.info(u"check for users to unfollow")
         friendship_checker = FriendshipChecker(settings.METHOD_UNFOLLOW)
-        self._gather_friends(max_pages)
+        self._gather_friends()
         for i in self.friends:
             user = twitter_access.get_user(i, self.api)
             logging.info(u"CHECK: "+unicode(user.screen_name) +u" ____________________________")
@@ -156,11 +161,11 @@ def follow_followers_followers(self):
 class FriendshipChecker(object):
     """
         Decides wheter a user should be a friend or not
+        
+        args:
+            method_type (str): "FOLLOWBACK"|"UNFOLLOW"|"". Set depending on function used. used to get settings
     """
     def __init__(self, method_type=""):
-        """
-            @param method_type: "FOLLOWBACK"|"UNFOLLOW"|"" 
-        """
         self.FOLLOWER_NR = "followers_nr"
         self.PROFILE_IMAGE = "profile_image"
         self.DESCRIPTION_LENGTH = "description_length"
@@ -174,6 +179,12 @@ class FriendshipChecker(object):
         self._set_rules(method_type)
         
     def _set_parameters(self, method_type):
+        """
+            Get fact parameters from settings and set them in class fact parameters
+            
+            args:
+                method_type (str): "FOLLOWBACK"|"UNFOLLOW"|"". Set depending on function used. used to get settings
+        """
         self.d_friends = getattr(settings,method_type+"_D_FRIENDSHIP",None)
         self.len_description = getattr(settings,method_type+"_LEN_DESCRIPTION",None) 
         self.profile_image = getattr(settings,method_type+"_PROFILE_IMAGE",None)
@@ -184,6 +195,12 @@ class FriendshipChecker(object):
         self.quaries = getattr(settings,method_type+"_QUARIES",None)
     
     def _set_rules(self, method_type):
+        """
+            Get rule parameters from settings and set them in class rule parameters
+            
+            args:
+                method_type (str): "FOLLOWBACK"|"UNFOLLOW"|"". Set depending on function used. used to get settings
+        """
         self.rule_active_friendship = getattr(settings,"RULE_FRIENDSHIP_NR_"+method_type,False)
         self.rule_active_description_length = getattr(settings,"RULE_DESCRIPTION_LENGTH_"+method_type,False)
         self.rule_active_status_nr = getattr(settings,"RULE_STATUS_NR_"+method_type,False)
@@ -195,6 +212,12 @@ class FriendshipChecker(object):
         self.rule_active_majority_rule = getattr(settings,"RULE_MAJORITY_RULE_"+method_type,False)
         
     def _full_check(self,user):
+        """
+            Run nesesary checks to get the facts wanted for the rules 
+            
+            args:
+                user (obj): Tweepy user object 
+        """
         checked = {}
         if self.d_friends != None:
             checked[self.FOLLOWER_NR] = self.check_followers_nr(user,self.d_friends)
@@ -221,11 +244,14 @@ class FriendshipChecker(object):
     def run(self,user):
         """
             Run this to check if user should be a friend or not
+            
+            args:
+                user (obj): Tweepy user object
         """
         
         checked = self._full_check(user)
         
-        #TODO: run rules
+        # Ruleset
         if self.rule_active_description_length:
             if not self.rule_single_check(checked, self.DESCRIPTION_LENGTH):
                 return False
@@ -271,6 +297,12 @@ class FriendshipChecker(object):
     #    Rules
     
     def rule_majority_rule(self, checked):
+        """
+            Return False if most facts are False OR return Ture if most facts are Ture
+            
+            args:
+                checked (dict): fact_name:fact_condition. Fact base
+        """
         if len([i for i in checked.values() if not i]) > len([i for i in checked.values() if i]):
             logging.info(u" - RULE FAILED: majority rule")
             return False
@@ -278,6 +310,13 @@ class FriendshipChecker(object):
         return True
     
     def rule_single_check(self, checked, parameter):
+        """
+            Return True if fact is true OR return False if fact is false
+            
+            args:
+                checked (dict): fact_name:fact_condition. Fact base
+                parameter (str): fact_name to be checked if is true or false
+        """
         if not checked.get(parameter,False):
             logging.info(u" - RULE FAILED: single parameter rule - " + unicode(parameter))
             return False
@@ -289,6 +328,13 @@ class FriendshipChecker(object):
     #    check values from user to se if they are ok  - get facts to be used in rules
     
     def check_followers_nr(self,user,d_friends):
+        """
+            Check if users has enough followers compared to friends
+            
+            args:
+                user (obj): Tweepy user object 
+                d_friends (float): IF followers < friends * d_friends THEN false                
+        """
         #IF user follow to many compared to how many followers it has, return false
         if user.followers_count < user.friends_count * d_friends:
             logging.info(unicode(user.screen_name) + u" - Followers FAILED - not enought")
@@ -297,6 +343,12 @@ class FriendshipChecker(object):
         return True
     
     def check_profile_image(self,user):
+        """
+            Check if user has a custom profile image
+            
+            args:
+                user (obj): Tweepy user object                
+        """
         #IF user has default profile image, return false
         if user.default_profile_image:
             logging.info(unicode(user.screen_name) + u" - Profile image FAILED - default image")
@@ -305,6 +357,13 @@ class FriendshipChecker(object):
         return True
     
     def check_description_length(self,user,len_description):
+        """
+            Check if user has long enough description
+            
+            args:
+                user (obj): Tweepy user object       
+                len_description (int): minimum description length         
+        """
         #IF user has no or to short description, return false
         if len(user.description) < len_description:
             logging.info(unicode(user.screen_name) + u" - Dscription length FAILED - to short")
@@ -313,6 +372,12 @@ class FriendshipChecker(object):
         return True
     
     def check_statuses(self,user):
+        """
+            Check if user has posted a status (tweet)
+            
+            args:
+                user (obj): Tweepy user object                
+        """
         #IF user last activity to long ago, return false
         if not user.__dict__.get("status",False):
             logging.info(unicode(user.screen_name) + u" - Status FAILED - no status")
@@ -321,6 +386,13 @@ class FriendshipChecker(object):
         return True
         
     def check_nr_statuses(self,user, nr_statuses):
+        """
+            Check if user has at leas x statuses
+            
+            args:
+                user (obj): Tweepy user object
+                nr_statuses (int): Nr of statuses (tweets) user must have more than                
+        """
         #IF user has to few statuses, return false
         if user.statuses_count < nr_statuses:
             logging.info(unicode(user.screen_name) + u" - Status nr FAILED - to few statuses") 
@@ -329,6 +401,13 @@ class FriendshipChecker(object):
         return True
     
     def check_last_active(self,user, days_active):
+        """
+            Check if user is active enough
+            
+            args:
+                user (obj): Tweepy user object
+                days_active (int): User must have been active within days_active days                
+        """
         #IF users has not recently bean active, return False
         if not user.__dict__.get("status",False):
             logging.info(unicode(user.screen_name) + u" - Last active FAILED - No statuses")
@@ -340,6 +419,13 @@ class FriendshipChecker(object):
         return True
     
     def check_account_age(self,user, profile_age):
+        """
+            Check if account is old enough
+            
+            args:
+                user (obj): Tweepy user object
+                profile_age (int): Account must be profile_age WEEKS old                
+        """
         #IF profile is to young, return False
         if (datetime.now()-user.created_at) < timedelta(weeks=profile_age):
             logging.info(unicode(user.screen_name) + u" - Account age FAILED - profile to young")
@@ -348,6 +434,16 @@ class FriendshipChecker(object):
         return True
     
     def check_quaries(self,user, quaries):
+        """
+            Check if any oof the quaries exist in user
+            
+            Note:
+                Curently only cehcks queries against user bio
+            
+            args:
+                user (obj): Tweepy user object
+                quaries (list/iter): A list of quaries. ["book","tv","action movies"]                
+        """
         #IF quary not in user return False
         for i in quaries:
             if i.lower() in user.description.lower(): 

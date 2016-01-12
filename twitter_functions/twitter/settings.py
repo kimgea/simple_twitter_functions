@@ -36,9 +36,10 @@ else:
 
 
 
+
 ################################
 #
-#    Twitter account info
+#    Twitter account info and general api configuration
 #
 TWITTER_CONSUMER_KEY = ""
 TWITTER_CONSUMER_SECRET = ""
@@ -47,6 +48,9 @@ TWITTER_USER_KEY = ""
 TWITTER_USER_SECRET = ""
 
 SCREEN_NAME = ""
+
+# <= 0 THEN scrape all ELSE limit api calls 
+MAX_PAGES_INGATHER_FRIENDSHIPS = 0
 
 
 ###################################
