@@ -1,4 +1,5 @@
 # simple_twitter_functions
+
 Some simple twitter functions by using twitter api code. Usable for smaller twitter account, but not ment to be used. If you use this code, then you have to take resposibility for whaterver happends you self.
 
 API data is not localy stored/cached and must be retrieved each time a function is called. Because of rate limits this makes functions use more time than nessesary.
@@ -12,5 +13,5 @@ Another project will adapt the code to work with db to minimize api calls, and o
 TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET, TWITTER_USER_KEY, TWITTER_USER_SECRET, and SCREEN_NAME in settings must be filled out
 
 
-WARNING:
+**WARNING:**
 - Aggressiv mass following and unfollowing might get you suspended.
